@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/crowdsecurity/crowdsec/pkg/models"
-	"github.com/pkg/errors"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -63,26 +62,13 @@ func newPF(config *bouncerConfig) (interface{}, error) {
 	return ret, nil
 }
 
-func (ctx *pfContext) checkTable() error {
-	log.Infof("Checking pf table: %s", ctx.table)
-
-	cmd := exec.Command(pfctlCmd, "-s", "Tables")
-	out, err := cmd.CombinedOutput()
-
-	if err != nil {
-		return errors.Wrapf(err, "pfctl error : %v - %s", err, string(out))
-	} else if !strings.Contains(string(out), ctx.table) {
-		return errors.Errorf("table %s doesn't exist", ctx.table)
-	}
-
-	return nil
-}
-
 func (ctx *pfContext) shutDown() error {
 	cmd := exec.Command(pfctlCmd, "-t", ctx.table, "-T", "flush")
 	log.Infof("pf table clean-up : %s", cmd.String())
 	if out, err := cmd.CombinedOutput(); err != nil {
-		log.Errorf("Error while flushing table (%s): %v --> %s", cmd.String(), err, string(out))
+		if (!strings.Contains(string(out), "Table does not exist.")) {
+			log.Errorf("Error while flushing table (%s): %v --> %s", cmd.String(), err, string(out))
+		}
 	}
 
 	return nil
@@ -112,7 +98,10 @@ func (ctx *pfContext) Delete(decision *models.Decision) error {
 	cmd := exec.Command(pfctlCmd, "-t", ctx.table, "-T", "delete", *decision.Value)
 	log.Debugf("pfctl del : %s", cmd.String())
 	if out, err := cmd.CombinedOutput(); err != nil {
-		log.Infof("Error while deleting from table (%s): %v --> %s", cmd.String(), err, string(out))
+		// table is not required to exist at all times
+		if (!strings.Contains(string(out), "Table does not exist.")) {
+			log.Infof("Error while deleting from table (%s): %v --> %s", cmd.String(), err, string(out))
+		}
 	}
 	return nil
 }
@@ -121,9 +110,6 @@ func initPF(ctx *pfContext) error {
 
 	if err := ctx.shutDown(); err != nil {
 		return fmt.Errorf("pf table flush failed: %s", err.Error())
-	}
-	if err := ctx.checkTable(); err != nil {
-		return fmt.Errorf("pf init failed: %s", err.Error())
 	}
 	log.Infof("%s initiated for %s", backendName, ctx.version)
 
