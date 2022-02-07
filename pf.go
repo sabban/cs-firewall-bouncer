@@ -63,10 +63,15 @@ func newPF(config *bouncerConfig) (backend, error) {
 	return ret, nil
 }
 
+func execPfctl(arg ...string) *exec.Cmd {
+	arg = append([]string{"-a", "crowdsec"}, arg...)
+	return exec.Command(pfctlCmd, arg...)
+}
+
 func (ctx *pfContext) checkTable() error {
 	log.Infof("Checking pf table: %s", ctx.table)
 
-	cmd := exec.Command(pfctlCmd, "-a", "crowdsec", "-s", "Tables")
+	cmd := execPfctl("-s", "Tables")
 	out, err := cmd.CombinedOutput()
 
 	if err != nil {
@@ -81,7 +86,7 @@ func (ctx *pfContext) checkTable() error {
 }
 
 func (ctx *pfContext) shutDown() error {
-	cmd := exec.Command(pfctlCmd, "-a", "crowdsec", "-t", ctx.table, "-T", "flush")
+	cmd := execPfctl("-t", ctx.table, "-T", "flush")
 	log.Infof("pf table clean-up : %s", cmd.String())
 	if out, err := cmd.CombinedOutput(); err != nil {
 		log.Errorf("Error while flushing table (%s): %v --> %s", cmd.String(), err, string(out))
@@ -96,7 +101,7 @@ func (ctx *pfContext) Add(decision *models.Decision) error {
 		return err
 	}
 	log.Debugf(addBanFormat, backendName, *decision.Value, strconv.Itoa(int(banDuration.Seconds())), *decision.Scenario)
-	cmd := exec.Command(pfctlCmd, "-a", "crowdsec", "-t", ctx.table, "-T", "add", *decision.Value)
+	cmd := execPfctl("-t", ctx.table, "-T", "add", *decision.Value)
 	log.Debugf("pfctl add : %s", cmd.String())
 	if out, err := cmd.CombinedOutput(); err != nil {
 		log.Infof("Error while adding to table (%s): %v --> %s", cmd.String(), err, string(out))
@@ -111,7 +116,7 @@ func (ctx *pfContext) Delete(decision *models.Decision) error {
 		return err
 	}
 	log.Debugf(delBanFormat, backendName, *decision.Value, strconv.Itoa(int(banDuration.Seconds())), *decision.Scenario)
-	cmd := exec.Command(pfctlCmd, "-a", "crowdsec", "-t", ctx.table, "-T", "delete", *decision.Value)
+	cmd := execPfctl("-t", ctx.table, "-T", "delete", *decision.Value)
 	log.Debugf("pfctl del : %s", cmd.String())
 	if out, err := cmd.CombinedOutput(); err != nil {
 		log.Infof("Error while deleting from table (%s): %v --> %s", cmd.String(), err, string(out))
