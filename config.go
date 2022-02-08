@@ -48,6 +48,10 @@ type bouncerConfig struct {
 		Ipv4 nftablesFamilyConfig `yaml:"ipv4"`
 		Ipv6 nftablesFamilyConfig `yaml:"ipv6"`
 	} `yaml:"nftables"`
+	pf struct {
+		useAnchor  bool   `yaml:"use_anchor"`
+		anchorName string `yaml:"anchor_name"`
+	} `yaml:"pf"`
 }
 
 func newConfig(configPath string) (*bouncerConfig, error) {

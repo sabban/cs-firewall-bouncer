@@ -41,3 +41,7 @@ nftables:
     set-only: false
     table: crowdsec6
     chain: crowdsec6-chain
+# packet filter
+pf:
+  use_anchor: true
+  anchor_name: crowdsec
