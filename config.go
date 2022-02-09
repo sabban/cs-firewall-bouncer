@@ -57,6 +57,14 @@ type bouncerConfig struct {
 func newConfig(configPath string) (*bouncerConfig, error) {
 	config := &bouncerConfig{}
 
+	//	config := &bouncerConfig{
+	//	pf{
+	//		useAnchor: true,
+	//	}}
+
+	config.pf.useAnchor = true
+	config.pf.anchorName = "crowdsec"
+
 	configBuff, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return &bouncerConfig{}, fmt.Errorf("failed to read %s : %v", configPath, err)

@@ -1,5 +1,3 @@
-// +build openbsd freebsd
-
 package main
 
 import (
@@ -41,12 +39,19 @@ const (
 
 func newPF(config *bouncerConfig) (backend, error) {
 	ret := &pf{}
-	var anchor string
 
-	if config.pf.useAnchor {
-		anchor = config.pf.anchorName
-		if anchor == "" {
-			anchor = defaultAnchor
+	//	useAnchor := &config.pf.useAnchor
+	//	if useAnchor == nil {
+	//		*useAnchor = true
+	//		log.Debug("pf.use_anchor is not defined, defaults to true")
+	//	}
+	//
+	//	anchor := defaultAnchor
+
+	var anchor string
+	if config.pf.useAnchor == true {
+		if config.pf.anchorName != "" {
+			anchor = config.pf.anchorName
 		}
 	} else {
 		anchor = ""
