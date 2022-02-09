@@ -29,9 +29,8 @@ type pf struct {
 const (
 	backendName = "pf"
 
-	pfctlCmd      = "/sbin/pfctl"
-	pfDevice      = "/dev/pf"
-	defaultAnchor = "crowdsec"
+	pfctlCmd = "/sbin/pfctl"
+	pfDevice = "/dev/pf"
 
 	addBanFormat = "%s: add ban on %s for %s sec (%s)"
 	delBanFormat = "%s: del ban on %s for %s sec (%s)"
@@ -40,34 +39,17 @@ const (
 func newPF(config *bouncerConfig) (backend, error) {
 	ret := &pf{}
 
-	//	useAnchor := &config.pf.useAnchor
-	//	if useAnchor == nil {
-	//		*useAnchor = true
-	//		log.Debug("pf.use_anchor is not defined, defaults to true")
-	//	}
-	//
-	//	anchor := defaultAnchor
-
-	var anchor string
-	if config.pf.useAnchor == true {
-		if config.pf.anchorName != "" {
-			anchor = config.pf.anchorName
-		}
-	} else {
-		anchor = ""
-	}
-
 	inetCtx := &pfContext{
-		proto:   "inet",
-		anchor:  anchor,
 		table:   config.BlacklistsIpv4,
+		proto:   "inet",
+		anchor:  config.pf.anchorName,
 		version: "ipv4",
 	}
 
 	inet6Ctx := &pfContext{
-		proto:   "inet6",
-		anchor:  anchor,
 		table:   config.BlacklistsIpv6,
+		proto:   "inet6",
+		anchor:  config.pf.anchorName,
 		version: "ipv6",
 	}
 

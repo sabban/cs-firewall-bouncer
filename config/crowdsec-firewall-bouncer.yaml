@@ -43,5 +43,4 @@ nftables:
     chain: crowdsec6-chain
 # packet filter
 pf:
-  use_anchor: true
   anchor_name: crowdsec

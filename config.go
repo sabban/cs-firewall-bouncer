@@ -49,7 +49,6 @@ type bouncerConfig struct {
 		Ipv6 nftablesFamilyConfig `yaml:"ipv6"`
 	} `yaml:"nftables"`
 	pf struct {
-		useAnchor  bool   `yaml:"use_anchor"`
 		anchorName string `yaml:"anchor_name"`
 	} `yaml:"pf"`
 }
@@ -57,12 +56,7 @@ type bouncerConfig struct {
 func newConfig(configPath string) (*bouncerConfig, error) {
 	config := &bouncerConfig{}
 
-	//	config := &bouncerConfig{
-	//	pf{
-	//		useAnchor: true,
-	//	}}
-
-	config.pf.useAnchor = true
+	// empty anchorName is a valid value and disables the anchor
 	config.pf.anchorName = "crowdsec"
 
 	configBuff, err := ioutil.ReadFile(configPath)
